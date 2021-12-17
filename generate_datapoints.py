@@ -1,6 +1,7 @@
 from datetime import datetime
 from random import random, randrange
 
+"""I didn't bother with this file since we're likely going to use data from a SUMO simulation"""
 
 #https://geopy.readthedocs.io/en/stable/#googlev3
 
