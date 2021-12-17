@@ -1,4 +1,3 @@
-from math import exp
 import shap
 import matplotlib.pyplot as plt  # To visualize
 import pandas as pd  # To read data
@@ -31,10 +30,11 @@ def ShapleyValue(model, X_features):
  
     explainer = shap.Explainer(model.predict, X_features)
     shap_values = explainer(X_features)
+
     psi = shap_values.values #vector of the shapley values of each feature of each datapoint (the X_features).
 
     #print("shapley values", psi)
-    #shap.plots.beeswarm(shap_values)
+    shap.plots.beeswarm(shap_values)
     return psi
 
 
@@ -53,8 +53,8 @@ This reveals for example that a high latitude increases the predicted probabilit
 #dahleh paper would take the following inputs: ShapleyRobust(Y_n, X_M, K, SimilarityMeasure_Function, lambda):
 def ShapleyRobust(model, X_features, SimilarityMeasure_Function, lamda):
     psi_n_bar = ShapleyValue(model, X_features)
-    shap.plots.beeswarm(psi_n_bar)
     
+
     finalSimilarities = np.zeros(X_features.shape[0])
 
     for i,rowOfInterest in enumerate(np.array(X_features)):
