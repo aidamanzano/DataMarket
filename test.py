@@ -13,7 +13,7 @@ X = data[['latitude', 'longitude']]
 y = data[['probability']]
 
 def cosineSimilarity(a, b):
-    similarity = cosine_similarity(a, b)
+    similarity = cosine(a, b) #https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cosine.html
     return similarity
 
 

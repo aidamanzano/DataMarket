@@ -10,10 +10,6 @@ def cosineSimilarity(a, b):
     similarity = cosine(a, b) #https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cosine.html
     return similarity
 
-data = pd.read_csv("datapoints.csv")
-TrainingColumnLabels = ['latitude', 'longitude']
-PredictionColumnLabels = ['probability']
-dataPath = "datapoints.csv"
 
 def generateModel(dataset_path, XcolumnLabels, YcolumnLabels, model = sklearn.linear_model.LinearRegression()):
     """Generates a predictive task to input into the shapley value function. Takes dataset path, the column labels for the
@@ -27,7 +23,7 @@ def generateModel(dataset_path, XcolumnLabels, YcolumnLabels, model = sklearn.li
 
     # fit the model
     model.fit(X, y)
-    return model
+    return model, X
 
 
 def ShapleyValue(model, X_features):
@@ -55,19 +51,21 @@ This reveals for example that a high latitude increases the predicted probabilit
     return psi_n  """
 
 #dahleh paper would take the following inputs: ShapleyRobust(Y_n, X_M, K, SimilarityMeasure_Function, lambda):
-def ShapleyRobust(model, X_features, K, SimilarityMeasure_Function, lamda):
+def ShapleyRobust(model, X_features, SimilarityMeasure_Function, lamda):
     psi_n_bar = ShapleyValue(model, X_features)
+    shap.plots.beeswarm(psi_n_bar)
+    
     finalSimilarities = np.zeros(X_features.shape[0])
 
     for i,rowOfInterest in enumerate(np.array(X_features)):
-        print('I',i,'row of interest',rowOfInterest)
+        #print('I',i,'row of interest',rowOfInterest)
         for row in np.array(X_features):
-            print('row',row)
+            #print('row',row)
             if (rowOfInterest != row).all(): #checks all elements are the same
-                print('COS Similarity', SimilarityMeasure_Function(rowOfInterest,row))
-                finalSimilarities[i] += SimilarityMeasure_Function(rowOfInterest,row)
+                #print('COS Similarity', SimilarityMeasure_Function(rowOfInterest,row))
+                finalSimilarities[i] += SimilarityMeasure_Function(rowOfInterest,row) # OR (-SimilarityMeasure_Function(rowOfInterest,row)+1)
 
-    print(finalSimilarities.reshape(-1,1))
+    print('Similarity Measures\n', finalSimilarities.reshape(-1,1), '\n')
     ShapleyRobust = psi_n_bar* np.exp(-lamda * finalSimilarities.reshape(-1,1))
     return ShapleyRobust
 
@@ -77,3 +75,11 @@ data = pd.read_csv("datapoints.csv")
 TrainingColumnLabels = ['latitude', 'longitude']
 PredictionColumnLabels = ['probability']
 dataPath = "datapoints.csv"
+
+LinearRegressionModel, X_features = generateModel(dataPath, TrainingColumnLabels, PredictionColumnLabels)
+
+ShapleyValues = ShapleyValue(LinearRegressionModel, X_features)
+
+ShapleyRobustValues = ShapleyRobust(LinearRegressionModel, X_features, cosineSimilarity, 1)
+
+print('SHAPLEY VALUES\n', ShapleyValues, '\n', 'SHAPLEY Robust VALUES\n', ShapleyRobustValues)
