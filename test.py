@@ -1,4 +1,4 @@
-
+"""IGNORE THIS FILE"""
 import numpy as np
 import shap
 import matplotlib.pyplot as plt  # To visualize
@@ -18,6 +18,7 @@ def cosineSimilarity(a, b):
 
 
 finalSimilarities = np.zeros(X.shape[0])
+print(finalSimilarities)
 
 for i,rowOfInterest in enumerate(np.array(X)):
     print('I',i,'row of interest',rowOfInterest)

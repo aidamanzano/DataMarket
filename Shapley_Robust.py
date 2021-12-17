@@ -1,6 +1,6 @@
 import shap
-import matplotlib.pyplot as plt  # To visualize
-import pandas as pd  # To read data
+
+import pandas as pd 
 import sklearn
 from scipy.spatial.distance import cosine
 import numpy as np
@@ -26,7 +26,7 @@ def generateModel(dataset_path, XcolumnLabels, YcolumnLabels, model = sklearn.li
 
 
 def ShapleyValue(model, X_features):
-    #https://www.analyticsvidhya.com/blog/2019/11/shapley-value-machine-learning-interpretability-game-theory/
+    #https://github.com/slundberg/shap #https://shap.readthedocs.io/en/latest/index.html 
  
     explainer = shap.Explainer(model.predict, X_features)
     shap_values = explainer(X_features)
@@ -54,21 +54,20 @@ This reveals for example that a high latitude increases the predicted probabilit
 def ShapleyRobust(model, X_features, SimilarityMeasure_Function, lamda):
     psi_n_bar = ShapleyValue(model, X_features)
     
-
+    #initialising an empty array of the size of X_features to populate with the running sum of the Similarity Measure
     finalSimilarities = np.zeros(X_features.shape[0])
 
-    for i,rowOfInterest in enumerate(np.array(X_features)):
-        #print('I',i,'row of interest',rowOfInterest)
+    for i,rowOfInterest in enumerate(np.array(X_features)): #rowOfInterest is the row we are comparing with all the rest of the rows in the Similarity Measure
+        #every row needs to be compared against every other row, except itself, and calculate the SM.
         for row in np.array(X_features):
-            #print('row',row)
-            if (rowOfInterest != row).all(): #checks all elements are the same
-                #print('COS Similarity', SimilarityMeasure_Function(rowOfInterest,row))
-                finalSimilarities[i] += SimilarityMeasure_Function(rowOfInterest,row) # OR (-SimilarityMeasure_Function(rowOfInterest,row)+1)
+
+            if (rowOfInterest != row).all(): #checks all elements in the row
+                finalSimilarities[i] += SimilarityMeasure_Function(rowOfInterest,row) #calculate the running sum of the SM of the rowOfInterest across all rows
 
     print('Similarity Measures\n', finalSimilarities.reshape(-1,1), '\n')
     ShapleyRobust = psi_n_bar* np.exp(-lamda * finalSimilarities.reshape(-1,1))
     return ShapleyRobust
-
+    #Should subsample the similarity measure check, because currently its complexity is n similarity checks for n rows (so n^2)
 
 
 data = pd.read_csv("datapoints.csv")
@@ -83,3 +82,4 @@ ShapleyValues = ShapleyValue(LinearRegressionModel, X_features)
 ShapleyRobustValues = ShapleyRobust(LinearRegressionModel, X_features, cosineSimilarity, 1)
 
 print('SHAPLEY VALUES\n', ShapleyValues, '\n', 'SHAPLEY Robust VALUES\n', ShapleyRobustValues)
+
